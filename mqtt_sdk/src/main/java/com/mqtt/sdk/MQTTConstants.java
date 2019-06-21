@@ -8,7 +8,7 @@ package com.mqtt.sdk;
 public class MQTTConstants {
 
     //mqtt android客户端版本号
-    public static final String MQTT_ANDROID_SDK = "1.0.7";
+    public static final String MQTT_ANDROID_SDK = "1.0.8";
 
     //语音反馈
     public final static String MQTTMESSAGE = "messageResponse";
