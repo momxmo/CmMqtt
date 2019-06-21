@@ -117,7 +117,7 @@ public class MqttManager {
             String payload = new String(message.getPayload());
             MQLog.d("Topic: " + topic + " ==> Payload: " + payload);
             if (topic != null && payload != null) {
-                if (connection != null & connection.isConnected()) {
+                if (connection != null && connection.isConnected()) {
                     if (connection.getSubscriptionsFilter(topic)) {
                         Intent intent = new Intent();
                         intent.setAction(MQTTConstants.MQTT_RECEIVER);
