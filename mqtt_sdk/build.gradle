@@ -1,0 +1,91 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+group='com.github.cmmqtt'  //注意com.github.后面的为github账号
+
+//根路径
+def ROOT_PATH = rootProject.rootDir.path
+def GROUP = "com.mqtt.sdk"
+def MOB_SDK_VERSION_NAME = "1.0.7"
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 28
+        versionCode 107
+        versionName "1.0.7"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    //自定义aar名称
+    android.libraryVariants.all {
+        variant ->
+            variant.outputs.all {
+                def fileName = GROUP + "." + MOB_SDK_VERSION_NAME +   "_release.aar"
+                outputFileName = fileName
+            }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:28.0.0-alpha1'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.1'
+    implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
+//    implementation project(':org.eclipse.paho.android.service')
+}
+
+task aarRelease(type: Copy) {
+//任务开始
+    println "----------> AAR Release Task Start <----------"
+
+//执行编译AAR脚本（原生脚本）
+    dependsOn 'assembleRelease'
+
+//AAR所在的编译路径
+    def buildPath = ROOT_PATH + '/mqtt_sdk/build/outputs/aar/'
+//AAR输出默认路径
+    def aarOutPath = ROOT_PATH + '/lib'
+//脚本指定路径
+    if(project.hasProperty('OUT_PUT_DIR_PATH')){
+        aarOutPath = "${OUT_PUT_DIR_PATH}"
+    }
+    def adPath = buildPath + GROUP + "." + MOB_SDK_VERSION_NAME +   "_release.aar"
+    //封装数组
+    def modulePaths = [adPath]
+
+    //当前AAR输出目录
+    println "The current aar output directory is " + aarOutPath
+    delete aarOutPath
+    //循环删除已存在的aar
+    //循环删除已存在的aar
+    for (path in modulePaths) {
+        println "Delete ---> " + path
+        delete path
+    }
+
+//循环拷贝AAR到ARR输出目录
+    for (path in modulePaths) {
+        //显示开始拷贝
+        println "-> Start of current copy <-"
+        //当前目录
+        println "From : " + path
+        from path
+        //拷贝至 aarOutPath
+        println "Into : " + aarOutPath
+        into aarOutPath;
+        //显示当前拷贝结束
+        println "-> End of current copy <-"
+    }
+    dependsOn 'assembleRelease'
+
+//任务结束
+    println "----------> AAR Release Task End <----------"
+}
