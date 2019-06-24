@@ -115,9 +115,9 @@ public class MqttManager {
         @Override
         public void messageArrived(String topic, MqttMessage message) throws Exception {
             String payload = new String(message.getPayload());
-            MQLog.d("Topic: " + topic + " ==> Payload: " + payload);
+            MQLog.d("Topic: " + topic + " isDuplicate: "+message.isDuplicate()+" messageId: "+message.getId()+"  ==> Payload: " + payload);
             if (topic != null && payload != null) {
-                if (connection != null && connection.isConnected()) {
+                if (connection != null) {
                     if (connection.getSubscriptionsFilter(topic)) {
                         Intent intent = new Intent();
                         intent.setAction(MQTTConstants.MQTT_RECEIVER);
@@ -272,7 +272,6 @@ public class MqttManager {
                     if (mMQTTRegisterCallback != null) {
                         mMQTTRegisterCallback.onSuccess(connection.getId());
                     }
-                    connectedHandler();
                 }
 
                 @Override
@@ -323,6 +322,8 @@ public class MqttManager {
 
     public boolean isConnected() {
         if (connection != null) {
+//            MqttAndroidClient client = connection.getClient();
+//            client.isConnected();
             return connection.isConnected();
         }
         return false;
