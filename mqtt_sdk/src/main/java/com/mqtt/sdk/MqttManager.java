@@ -146,7 +146,9 @@ public class MqttManager {
         if (myphonelister == null) {
             myphonelister = new SimPhoneStateListener(context);
             Tel = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            Tel.listen(myphonelister, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+            if (Tel != null) {
+                Tel.listen(myphonelister, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+            }
         }
     }
 
@@ -197,7 +199,8 @@ public class MqttManager {
             }
             return;
         }
-        if (connection != null && connection.isConnected()) {
+
+        if (connection != null ) {
             ConnectionModel connectionModel = new ConnectionModel(connection);
             if (url.getHost().equals(connectionModel.getServerHostName())
                     && url.getPort() == connectionModel.getServerPort()
@@ -207,12 +210,14 @@ public class MqttManager {
                 if (mMQTTRegisterCallback != null) {
                     mMQTTRegisterCallback.onSuccess(connection.getId());
                 }
-                if (topics != null && topics.length > 0 && connection.getClient() != null && connection.getClient().isConnected()) {
+                if (topics != null && topics.length > 0 && connection.getClient() != null ) {
                     ArrayList<Subscription> newSubs = new ArrayList<>();
                     for (String topic : topics) {
                         newSubs.add(new Subscription(topic, 1, connection.handle(), false));
                         try {
-                            connection.getClient().subscribe(topic, 1);
+                            if (connection.getClient().isConnected()) {
+                                connection.getClient().subscribe(topic, 1);
+                            }
                         } catch (MqttException e) {
                             e.printStackTrace();
                         }
@@ -235,16 +240,19 @@ public class MqttManager {
 //        connectionModel.setTlsServerKey("XXXXXXXXXXXXXX");
 //        connectionModel.setTlsClientKey("XXXXXXXXXXXX");
         connectionModel.setTimeout(40);
-        connectionModel.setKeepAlive(SharedPreferenceUtil.getInstance(context).getInt(SharedPreferenceUtil.KEEP_ALIVE, 20));
+        connectionModel.setKeepAlive(SharedPreferenceUtil.getInstance(context).getInt(SharedPreferenceUtil.KEEP_ALIVE, 30));
         connectionModel.setLwtRetain(true);
         connection(topics, connectionModel, false);
     }
 
-    private void connection(String[] topics, ConnectionModel connectionModel, boolean isReset) {
+    private synchronized void connection(String[] topics, ConnectionModel connectionModel, boolean isReset) {
         try {
-            if (connection != null && connection.isConnected()) {
+            if (connection != null) {
+                MqttAndroidClient client = connection.getClient();
                 connection.changeConnectionStatus(Connection.ConnectionStatus.DISCONNECTING);
-                connection.getClient().disconnect();
+                if(client!=null){
+                    client.disconnect();
+                }
                 connection.updateConnection(connectionModel.getClientId(), connectionModel.getServerHostName(), connectionModel.getServerPort(), connectionModel.isTlsConnection());
             } else {
                 connection = Connection.createConnection(
@@ -394,7 +402,7 @@ public class MqttManager {
     }
 
     public void updateKeepAlive(int keepAliveTime) {
-        if (connection != null && connection.isConnected()) {
+        if (connection != null) {
             //TODO 设置心跳包
             ConnectionModel connectionModel = new ConnectionModel(connection);
             connectionModel.setKeepAlive(keepAliveTime);
@@ -420,7 +428,7 @@ public class MqttManager {
      * 订阅
      */
     private void subscribeAllTopics() {
-        if (connection != null && connection.isConnected()) {
+        if (connection != null) {
             if (connection.getClient() == null || !connection.getClient().isConnected()) {
                 return;
             }
@@ -454,7 +462,7 @@ public class MqttManager {
                 callback.onFailure(new PushException("msg is must"), "msg is must");
             return;
         }
-        if (!isConnected()) {
+        if (connection == null) {
             if (callback != null)
                 callback.onFailure(new PushException("mqtt  uninitialized"), "mqtt  uninitialized");
             return;
@@ -471,7 +479,7 @@ public class MqttManager {
             }
             MqttAndroidClient client = connection.getClient();
             if (client == null || !client.isConnected()) {
-                callback.onFailure(new PushException("mqtt no connetion"), "mqtt no connetion");
+                callback.onFailure(new PushException("mqtt disconnetion"), "mqtt disconnetion");
                 return;
             }
             client.publish(topic, message, context, new IMqttActionListener() {
@@ -515,7 +523,7 @@ public class MqttManager {
                 callback.onFailure(new PushException("msg is must"), "msg is must");
             return;
         }
-        if (!isConnected()) {
+        if (connection == null) {
             if (callback != null)
                 callback.onFailure(new PushException("mqtt  uninitialized"), "mqtt  uninitialized");
             return;
@@ -535,7 +543,7 @@ public class MqttManager {
             message.setPayload(msg.getBytes());
             MqttAndroidClient client = connection.getClient();
             if (client == null || !client.isConnected()) {
-                callback.onFailure(new PushException("mqtt no connetion"), "mqtt no connetion");
+                callback.onFailure(new PushException("mqtt disconnetion"), "mqtt disconnetion");
                 return;
             }
             client.publish(topic, message, context, new IMqttActionListener() {
@@ -567,7 +575,7 @@ public class MqttManager {
 
     public void unregisterMQTT() {
         try {
-            if (connection != null && connection.isConnected()) {
+            if (connection != null && connection.getClient()!=null) {
                 connection.getClient().disconnect();
             }
         } catch (Exception e) {
