@@ -48,9 +48,9 @@ public abstract class MQTTReceiver extends BroadcastReceiver {
 //        if (!subscriptionsFilter) {
 //            return;
 //        }
-        if (topic.equals(MQTTConstants.IOT_MESSAGE + clientid)) {
+        if (topic.contains(MQTTConstants.IOT_MESSAGE)) {
             handlerMessage(topic, message);
-        } else if (topic.equals(MQTTConstants.IOT_UPDATE + clientid)) {
+        } else if (topic.contains(MQTTConstants.IOT_UPDATE )) {
             try {
                 JSONObject jsonMessage = new JSONObject(message);
                 if (jsonMessage.has("pingInterval")) {
@@ -59,7 +59,7 @@ public abstract class MQTTReceiver extends BroadcastReceiver {
             } catch (JSONException e) {
                 MQLog.e(e.getMessage());
             }
-        } else if (topic.equals(MQTTConstants.IOT_CMD + clientid)) {
+        } else if (topic.contains(MQTTConstants.IOT_CMD )) {
             try {
                 JSONObject jsonMessage = new JSONObject(message);
                 if (jsonMessage.has("cmd")) {

@@ -39,28 +39,29 @@ public class ConnectionModel {
     private String lwtTopic = "";
     private String lwtMessage = "";
     private int lwtQos = 0;
-    private boolean lwtRetain =  false;
+    private boolean lwtRetain = false;
 
-    public ConnectionModel(){
+    public ConnectionModel() {
 
     }
 
 
-
-    /** Initialise the ConnectionModel with an existing connection **/
-    public ConnectionModel(Connection connection){
+    /**
+     * Initialise the ConnectionModel with an existing connection
+     **/
+    public ConnectionModel(Connection connection) {
         clientHandle = connection.handle();
         clientId = connection.getId();
         serverHostName = connection.getHostName();
         serverPort = connection.getPort();
         cleanSession = connection.getConnectionOptions().isCleanSession();
 
-        if(connection.getConnectionOptions().getUserName() == null){
+        if (connection.getConnectionOptions().getUserName() == null) {
             username = "";
-        }else {
+        } else {
             username = connection.getConnectionOptions().getUserName();
         }
-        if(connection.getConnectionOptions().getPassword() != null) {
+        if (connection.getConnectionOptions().getPassword() != null) {
             password = new String(connection.getConnectionOptions().getPassword());
         } else {
             password = "";
@@ -70,12 +71,12 @@ public class ConnectionModel {
         timeout = connection.getConnectionOptions().getConnectionTimeout();
         keepAlive = connection.getConnectionOptions().getKeepAliveInterval();
 
-        if(connection.getConnectionOptions().getWillDestination() == null){
+        if (connection.getConnectionOptions().getWillDestination() == null) {
             lwtTopic = "";
         } else {
             lwtTopic = connection.getConnectionOptions().getWillDestination();
         }
-        if(connection.getConnectionOptions().getWillMessage() != null) {
+        if (connection.getConnectionOptions().getWillMessage() != null) {
             lwtMessage = new String(connection.getConnectionOptions().getWillMessage().getPayload());
             lwtQos = connection.getConnectionOptions().getWillMessage().getQos();
             lwtRetain = connection.getConnectionOptions().getWillMessage().isRetained();
@@ -292,4 +293,5 @@ public class ConnectionModel {
         result = 31 * result + (lwtRetain ? 1 : 0);
         return result;
     }
+
 }

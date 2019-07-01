@@ -49,6 +49,7 @@ public class MqttManager {
     private static final String TAG = "MqttManager";
     private static MqttManager mInstance;
     private Context context;
+    private String productKey;//阿里使用到
     private MQTTRegisterCallback mMQTTRegisterCallback;
     private Connection connection;
     private SimPhoneStateListener myphonelister;
@@ -115,7 +116,7 @@ public class MqttManager {
         @Override
         public void messageArrived(String topic, MqttMessage message) throws Exception {
             String payload = new String(message.getPayload());
-            MQLog.d("Topic: " + topic + " isDuplicate: "+message.isDuplicate()+" messageId: "+message.getId()+"  ==> Payload: " + payload);
+            MQLog.d("Topic: " + topic + " isDuplicate: " + message.isDuplicate() + " messageId: " + message.getId() + "  ==> Payload: " + payload);
             if (topic != null && payload != null) {
                 if (connection != null) {
                     if (connection.getSubscriptionsFilter(topic)) {
@@ -153,6 +154,10 @@ public class MqttManager {
     }
 
     public void registerQMTT(@NonNull Context mContext, String serverUrl, String sn, String token, String[] topics, @Nullable final MQTTRegisterCallback mCallback) {
+        this.registerQMTT(mContext, null, serverUrl, sn, token, topics, mCallback);
+    }
+
+    public void registerQMTT(@NonNull Context mContext, String productKey, String serverUrl, String sn, String token, String[] topics, @Nullable final MQTTRegisterCallback mCallback) {
         if (mContext == null) {
             if (mCallback != null) {
                 mCallback.onFailure(new RegisterException("context can not be empty "), "context can not be empty ");
@@ -200,17 +205,20 @@ public class MqttManager {
             return;
         }
 
-        if (connection != null ) {
+        if (connection != null) {
             ConnectionModel connectionModel = new ConnectionModel(connection);
             if (url.getHost().equals(connectionModel.getServerHostName())
                     && url.getPort() == connectionModel.getServerPort()
                     && sn.equals(connectionModel.getClientId())
                     && token.equals(connectionModel.getPassword())) {
                 this.mMQTTRegisterCallback = mCallback;
-                if (mMQTTRegisterCallback != null) {
-                    mMQTTRegisterCallback.onSuccess(connection.getId());
+                MqttAndroidClient client = connection.getClient();
+                if (client != null && client.isConnected()) {
+                    if (mMQTTRegisterCallback != null) {
+                        mMQTTRegisterCallback.onSuccess(connection.getId());
+                    }
                 }
-                if (topics != null && topics.length > 0 && connection.getClient() != null ) {
+                if (topics != null && topics.length > 0 && connection.getClient() != null) {
                     ArrayList<Subscription> newSubs = new ArrayList<>();
                     for (String topic : topics) {
                         newSubs.add(new Subscription(topic, 1, connection.handle(), false));
@@ -229,6 +237,7 @@ public class MqttManager {
         }
         this.context = mContext.getApplicationContext();
         this.mMQTTRegisterCallback = mCallback;
+        this.productKey = productKey;
 
         final ConnectionModel connectionModel = new ConnectionModel();
         connectionModel.setClientId(sn);
@@ -250,7 +259,7 @@ public class MqttManager {
             if (connection != null) {
                 MqttAndroidClient client = connection.getClient();
                 connection.changeConnectionStatus(Connection.ConnectionStatus.DISCONNECTING);
-                if(client!=null){
+                if (client != null) {
                     client.disconnect();
                 }
                 connection.updateConnection(connectionModel.getClientId(), connectionModel.getServerHostName(), connectionModel.getServerPort(), connectionModel.isTlsConnection());
@@ -313,9 +322,26 @@ public class MqttManager {
 
     public ArrayList setDefaultSubscription(String[] topics) {
         ArrayList<Subscription> subscriptions = new ArrayList<>();
-        Subscription mUpdateMessage = new Subscription(MQTTConstants.IOT_UPDATE + connection.getId(), 1, connection.handle(), false);
-        Subscription mtMessage = new Subscription(MQTTConstants.IOT_MESSAGE + connection.getId(), 1, connection.handle(), false);
-        Subscription mCMDMessage = new Subscription(MQTTConstants.IOT_CMD + connection.getId(), 1, connection.handle(), false);
+        String ClientId = connection.getId();
+        Subscription mUpdateMessage;
+        Subscription mtMessage;
+        Subscription mCMDMessage;
+        if (!TextUtils.isEmpty(productKey)) {
+            //阿里的哪一套 /productKey/clientId/user/iot/message
+            //            /productKey/clientId/user/iot/update
+            //           /productKey/clientId/user/iot/cmd
+            String prefix = "/" + productKey + "/" + ClientId + "/user";
+            mUpdateMessage = new Subscription(prefix + MQTTConstants.IOT_UPDATE, 1, connection.handle(), false);
+            mtMessage = new Subscription(prefix + MQTTConstants.IOT_MESSAGE, 1, connection.handle(), false);
+            mCMDMessage = new Subscription(prefix + MQTTConstants.IOT_CMD, 1, connection.handle(), false);
+        } else {
+            //公司的      /iot/message/clientId
+            //            /iot/update/clientId
+            //            /iot/cmd/clientId
+            mUpdateMessage = new Subscription(MQTTConstants.IOT_UPDATE + "/" + connection.getId(), 1, connection.handle(), false);
+            mtMessage = new Subscription(MQTTConstants.IOT_MESSAGE + "/" + connection.getId(), 1, connection.handle(), false);
+            mCMDMessage = new Subscription(MQTTConstants.IOT_CMD + "/" + connection.getId(), 1, connection.handle(), false);
+        }
         subscriptions.add(mUpdateMessage);
         subscriptions.add(mtMessage);
         subscriptions.add(mCMDMessage);
@@ -401,9 +427,9 @@ public class MqttManager {
         }
     }
 
+    //修改心跳包
     public void updateKeepAlive(int keepAliveTime) {
         if (connection != null) {
-            //TODO 设置心跳包
             ConnectionModel connectionModel = new ConnectionModel(connection);
             connectionModel.setKeepAlive(keepAliveTime);
             connection(null, connectionModel, true);
@@ -435,7 +461,7 @@ public class MqttManager {
             try {
                 ArrayList<Subscription> subscriptions = connection.getSubscriptions();
                 for (Subscription sub : subscriptions) {
-                    MQLog.i("Auto-subscribing to: " + sub.getTopic() + "@ QoS: " + sub.getQos());
+                    MQLog.i("Auto-subscribing to: " + sub.getTopic() + "   QoS: " + sub.getQos());
                     if (connection.getClient() != null && connection.getClient().isConnected()) {
                         connection.getClient().subscribe(sub.getTopic(), sub.getQos());
                     } else {
@@ -471,11 +497,22 @@ public class MqttManager {
             MqttMessage message = new MqttMessage();
             message.setPayload(msg.getBytes());
             String topic = null;
-
+            String ClientId = connection.getId();
             if (topicType == TopicType.MQTTVOICEMESSAGERESP) {
-                topic = MQTTConstants.PUBLISH_PLAYFEEDBACK + connection.getId();
+                if (!TextUtils.isEmpty(productKey)) {
+                    String prefix = "/" + productKey + "/" + ClientId + "/user";
+                    topic = prefix + MQTTConstants.PUBLISH_PLAYFEEDBACK;
+                } else {
+                    topic = MQTTConstants.PUBLISH_PLAYFEEDBACK + "/" + ClientId;
+                }
+
             } else if (topicType == TopicType.CLIENTINFO) {
-                topic = MQTTConstants.PUBLISH_UPLOADINFO + connection.getId();
+                if (!TextUtils.isEmpty(productKey)) {
+                    String prefix = "/" + productKey + "/" + ClientId + "/user";
+                    topic = prefix + MQTTConstants.PUBLISH_UPLOADINFO;
+                } else {
+                    topic = MQTTConstants.PUBLISH_UPLOADINFO + "/" + connection.getId();
+                }
             }
             MqttAndroidClient client = connection.getClient();
             if (client == null || !client.isConnected()) {
@@ -575,9 +612,10 @@ public class MqttManager {
 
     public void unregisterMQTT() {
         try {
-            if (connection != null && connection.getClient()!=null) {
+            if (connection != null && connection.getClient() != null) {
                 connection.getClient().disconnect();
             }
+            connection = null;
         } catch (Exception e) {
             e.printStackTrace();
         }
