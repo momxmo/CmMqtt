@@ -7,6 +7,12 @@ allprojects {
     repositories {
         //添加jitpack仓库
         maven { url 'https://jitpack.io' }
+         maven {
+            url "http://maven.aliyun.com/nexus/content/repositories/releases/"
+        }
+        maven {
+            url "http://maven.aliyun.com/nexus/content/repositories/snapshots"
+        }
     }
 }
 
