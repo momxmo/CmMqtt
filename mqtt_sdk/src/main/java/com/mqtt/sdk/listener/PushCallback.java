@@ -5,7 +5,7 @@ public interface PushCallback {
     /**
      * @param messageId 消息ID
      */
-    void onSuccess(int messageId);
+    void onSuccess(String messageId);
 
     /**
      * @param e 异常

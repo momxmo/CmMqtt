@@ -9,6 +9,8 @@ import android.text.TextUtils;
 import com.mqtt.sdk.model.Subscription;
 import com.mqtt.sdk.tool.MQLog;
 import com.mqtt.sdk.tool.SharedPreferenceUtil;
+import com.mqtt.sdk.topic.TopicContainer;
+import com.mqtt.sdk.topic.Topics;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,49 +44,57 @@ public abstract class MQTTReceiver extends BroadcastReceiver {
 
     private void internalHandler(String clientid, String topic, String message) {
         MQLog.i("topic : " + topic + " message" + message);
-        //消息过滤，只接受自己订阅的消息
-//        Connection connection = MqttManager.getInstance().getConnection();
-//        boolean subscriptionsFilter = connection.isSubscriptionsFilter(topic);
-//        if (!subscriptionsFilter) {
-//            return;
-//        }
-        if (topic.contains(MQTTConstants.IOT_MESSAGE)) {
-            handlerMessage(topic, message);
-        } else if (topic.contains(MQTTConstants.IOT_UPDATE )) {
-            try {
-                JSONObject jsonMessage = new JSONObject(message);
-                if (jsonMessage.has("pingInterval")) {
-                    updateKeepAlive(jsonMessage.getInt("pingInterval"));
-                }
-            } catch (JSONException e) {
-                MQLog.e(e.getMessage());
+        Topics topicType = TopicContainer.getInstance().getTopicType(topic);
+        switch (topicType) {
+            case message: {
+                handlerMessage(topic, message);
             }
-        } else if (topic.contains(MQTTConstants.IOT_CMD )) {
-            try {
-                JSONObject jsonMessage = new JSONObject(message);
-                if (jsonMessage.has("cmd")) {
-                    String cmd = jsonMessage.getString("cmd");
-                    switch (cmd) {
-                        case MQTTConstants.CMD_UNBIND_TPYE:
-                            UnbindMessage();
-                            break;
-                        case MQTTConstants.CMD_LOG_TPYE:
-                            LogMessage();
-                            break;
-                        case MQTTConstants.CMD_AD_TPYE:
-                            AdMessage();
-                            break;
-                        case MQTTConstants.CMD_UPGRADE_TPYE: {
-                            UpdateMessage(message);
-                        }
+            break;
+            case cmd: {
+                handlderCMDMessage(message);
+            }
+            break;
+            case update: {
+                handlerUpdatePing(message);
+            }
+            break;
+        }
+    }
+
+    private void handlerUpdatePing(String message) {
+        try {
+            JSONObject jsonMessage = new JSONObject(message);
+            if (jsonMessage.has("pingInterval")) {
+                updateKeepAlive(jsonMessage.getInt("pingInterval"));
+            }
+        } catch (JSONException e) {
+            MQLog.e(e.getMessage());
+        }
+    }
+
+    private void handlderCMDMessage(String message) {
+        try {
+            JSONObject jsonMessage = new JSONObject(message);
+            if (jsonMessage.has("cmd")) {
+                String cmd = jsonMessage.getString("cmd");
+                switch (cmd) {
+                    case MQTTConstants.CMD_UNBIND_TPYE:
+                        UnbindMessage();
                         break;
+                    case MQTTConstants.CMD_LOG_TPYE:
+                        LogMessage();
+                        break;
+                    case MQTTConstants.CMD_AD_TPYE:
+                        AdMessage();
+                        break;
+                    case MQTTConstants.CMD_UPGRADE_TPYE: {
+                        UpdateMessage(message);
                     }
+                    break;
                 }
-            } catch (JSONException e) {
-                MQLog.e(e.getMessage());
             }
-        } else {
-            handlerMessage(topic, message);
+        } catch (JSONException e) {
+            MQLog.e(e.getMessage());
         }
     }
 

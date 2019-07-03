@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * <code>Persistence</code> deals with interacting with the database to persist
  * {@link Connection} objects so created clients survive, the destruction of the
- * singleton {@link Connections} object.
+ * singleton {@link } object.
  *
  */
 public class Persistence extends SQLiteOpenHelper implements BaseColumns {
@@ -387,8 +387,6 @@ public class Persistence extends SQLiteOpenHelper implements BaseColumns {
                 subscriptions.add(sub);
             }
             sub_c.close();
-
-            connection.setSubscriptions(subscriptions);
 
             //store it in the list
             list.add(connection);

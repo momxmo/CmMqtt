@@ -12,9 +12,9 @@ allprojects {
 
 //app build.gradle
 dependencies {  
-    implementation 'com.github.momxmo:CmMqtt:v1.0.9'
-    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.1'
+    implementation 'com.github.momxmo:CmMqtt:v1.1.0'
     implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
+    implementation 'com.aliyun.alink.linksdk:iot-linkkit:1.6.6'
 }  
 ```
 ### 第二步，AndroidManifest.xml清单文件修改
@@ -45,37 +45,76 @@ dependencies {
 ###### 开启关闭debug模式
 ``` java
 MqttManager.getInstance().setDebug(true);
+AliyunManager.getInstance().setDebug(true);
 ```
-###### 初始化（sdk默认订阅message）
+###### 初始化（Mqtt注册方式）
 ``` java
 以下参数有各自项目业务服务器提供：
+productKey:产品key
 serverUrl：mqtt服务器地址
 sn:设备id(必须唯一，否则会被其他同id应用踢下线)
 token:登入密码使用
-topics:提供用户自定义订阅Topics使用（非必须）
-MqttManager.getInstance().registerQMTT(getApplicationContext(), serverUrl, sn, token, topics, new MQTTRegisterCallback() {
-    @Override
-    public void onSuccess(String clientId) {
-        Log.i(TAG, "注册成功：" + clientId);
-    }
-    @Override
-    public void onFailure(Exception e, String message) {
-        Log.i(TAG, "注册失败：" + message);
-    }
-});
+topicBean:提供用户自定义订阅
+MqttManager.getInstance().registerQMTT(getApplicationContext(), productKey, serverUrl, sn, token, topicBean, new MQTTRegisterCallback() {
+            @Override
+            public void onSuccess(String clientId) {
+                Log.i(TAG, "注册成功：" + clientId);
+            }
+
+            @Override
+            public void onFailure(Exception e, String message) {
+                Log.i(TAG, "注册失败：" + message);
+            }
+
+            @Override
+            public void connectionLost(Throwable cause) {
+                 Log.i(TAG, "客户端掉线");
+            }
+
+            @Override
+            public void reconnectComplete() {
+                Log.i(TAG, "重连成功");
+            }
+        });
 ```
+###### 初始化（阿里云注册方式）
+``` java
+以下参数有各自项目业务服务器提供：
+productKey:产品key
+deviceName:设备id(必须唯一，否则会被其他同id应用踢下线)
+deviceSecret:设备密码
+topicBean:提供用户自定义订阅
+ AliyunManager.getInstance().registerAliyun(this, productKey, deviceName, deviceSecret, topicBean, new CmILinkKitConnectListener() {
+            @Override
+            public void onError(AError aError) {
+                Log.i(TAG, "阿里注册失败"+aError.getCode()+"  "+aError.getMsg()+" "+aError.getDomain());
+            }
+
+            @Override
+            public void onInitDone(Object o) {
+                Log.i(TAG, "阿里注册成功");
+            }
+        });
+```
+
 ###### 查看MQTT是否连接
 ``` java
  MqttManager.getInstance().isConnected();
+ 
+ //阿里云
+ AliyunManager.getInstance().isConnected();
 ```
 ###### 反初始化（断开与服务器连接，将收不到消息）
 ``` java
 MqttManager.getInstance().unregisterMQTT();
+AliyunManager.getInstance().unregisterMQTT();
 ```
 ### 扩展功能
-###### 发布消息（或发布主题）
+###### 发布消息（语音播报完成反馈）
 ``` java
-MqttManager.getInstance().publishMessage("你要发布的Topic", "你发布的消息", null);
+MqttManager.getInstance().publishMessage(Topics.playFeedback, "你发布的消息", null);
+
+publishMessage.getInstance().publishMessage(Topics.playFeedback, "你发布的消息", null);
 ```
 ###### [MQTT协议的详细介绍](https://mcxiaoke.gitbooks.io/mqtt-cn/content/mqtt/03-ControlPackets.html )
 

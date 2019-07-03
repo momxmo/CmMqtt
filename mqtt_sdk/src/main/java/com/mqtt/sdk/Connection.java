@@ -379,25 +379,4 @@ public class Connection {
         }
 
     }
-
-    public void setSubscriptions(ArrayList<Subscription> newSubs) {
-        for (Subscription sub : newSubs) {
-            subscriptions.put(sub.getTopic(), sub);
-        }
-    }
-    public void clearSubscriptions() {
-        subscriptions.clear();
-    }
-
-    public ArrayList<Subscription> getSubscriptions() {
-        ArrayList<Subscription> subs = new ArrayList<Subscription>();
-        subs.addAll(subscriptions.values());
-        return subs;
-    }
-    public Map<String, Subscription> getSubscriptionsMap() {
-        return subscriptions;
-    }
-    public boolean getSubscriptionsFilter(String topic) {
-        return subscriptions.containsKey(topic);
-    }
 }

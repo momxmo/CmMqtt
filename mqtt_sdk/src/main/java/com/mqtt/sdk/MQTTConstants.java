@@ -8,21 +8,12 @@ package com.mqtt.sdk;
 public class MQTTConstants {
 
     //mqtt android客户端版本号
-    public static final String MQTT_ANDROID_SDK = "1.1.0";
-
-    //语音反馈
-    public final static String MQTTMESSAGE = "messageResponse";
-    //发布版本信息
-
-    public final static String PUBLISH_PLAYFEEDBACK = "/iot/publish/playFeedback";
-    public final static String PUBLISH_UPLOADINFO = "/iot/publish/uploadInfo";
+    public static final String MQTT_ANDROID_SDK = "1.1.1";
 
     //------------------------------------消息体----------------------------------
+    public final static String MQTTMESSAGE = "messageResponse";
     public final static String TOPIC = "topic";
     public final static String CLIENTID = "clientId";
-    public final static String IOT_MESSAGE = "/iot/message";
-    public final static String IOT_UPDATE = "/iot/update";
-    public final static String IOT_CMD = "/iot/cmd";
     public final static String SYS_CLOSE = "/sys/close/";
 
     //-----------------------------------广播消息Action-----------------------------

@@ -17,6 +17,12 @@ allprojects {
         google()
         jcenter()
         maven { url 'https://jitpack.io' }
+        maven {
+            url "http://maven.aliyun.com/nexus/content/repositories/releases/"
+        }
+        maven {
+            url "http://maven.aliyun.com/nexus/content/repositories/snapshots"
+        }
     }
 }
 
@@ -26,25 +32,16 @@ task clean(type: Delete) {
 
 
 ext{
-
     compileSdkVersion = 24
     buildToolsVersion = '23.0.3'
-
-
     group = 'org.eclipse.paho'
-
     sampleArchivesBaseName = 'org.eclipse.paho.android.sample'
     sampleVersion = '1.1.1'
-
     serviceArchivesBaseName = 'org.eclipse.paho.android.service'
     serviceVersion = '1.1.1'
-
     clientVersion = '1.1.0'
-
     mavenUrl = "https://repo.eclipse.org/content/repositories/paho-releases/"
-
     supportLibVersion = '24.2.1'
-
 }
 
 def getSdkDirFromLocalProperties() {
@@ -65,17 +62,3 @@ def androidHomeIsDefined = androidHome?.trim()
 def sdkDir = androidHomeIsDefined ? androidHome : getSdkDirFromLocalProperties()
 
 println "SDK dir: $sdkDir"
-
-
-allprojects {
-
-    repositories {
-        jcenter()
-        maven {
-            url "file://$sdkDir/extras/android/m2repository/"
-        }
-    }
-
-    version = rootProject.ext.serviceVersion
-    group = rootProject.ext.group
-}
