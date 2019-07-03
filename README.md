@@ -114,7 +114,7 @@ AliyunManager.getInstance().unregisterMQTT();
 ``` java
 MqttManager.getInstance().publishMessage(Topics.playFeedback, "你发布的消息", null);
 
-publishMessage.getInstance().publishMessage(Topics.playFeedback, "你发布的消息", null);
+AliyunManager.getInstance().publishMessage(Topics.playFeedback, "你发布的消息", null);
 ```
 ###### [MQTT协议的详细介绍](https://mcxiaoke.gitbooks.io/mqtt-cn/content/mqtt/03-ControlPackets.html )
 
