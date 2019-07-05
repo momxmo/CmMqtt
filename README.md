@@ -1,4 +1,4 @@
-# mqtt sdk的使用方式
+﻿# mqtt sdk的使用方式
 
 ### 第一步，build.gradle配置文件修改
 ``` java
@@ -12,7 +12,7 @@ allprojects {
 
 //app build.gradle
 dependencies {  
-    implementation 'com.github.momxmo:CmMqtt:v1.1.0'
+    implementation 'com.github.momxmo:CmMqtt:v1.1.2'
     implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
     implementation 'com.aliyun.alink.linksdk:iot-linkkit:1.6.6'
 }  
@@ -114,7 +114,7 @@ AliyunManager.getInstance().unregisterMQTT();
 ``` java
 MqttManager.getInstance().publishMessage(Topics.playFeedback, "你发布的消息", null);
 
-publishMessage.getInstance().publishMessage(Topics.playFeedback, "你发布的消息", null);
+AliyunManager.getInstance().publishMessage(Topics.playFeedback, "你发布的消息", null);
 ```
 ###### [MQTT协议的详细介绍](https://mcxiaoke.gitbooks.io/mqtt-cn/content/mqtt/03-ControlPackets.html )
 

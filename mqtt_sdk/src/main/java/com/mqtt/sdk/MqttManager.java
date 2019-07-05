@@ -124,9 +124,11 @@ public class MqttManager extends BasePushManager implements PublishTopic {
             //即服务器成功delivery消息 消息发送成功ack校验
         }
     };
+
     public void registerQMTT(@NonNull Context mContext, String serverUrl, String sn, String token, TopicBean topicBean, @Nullable final MQTTRegisterCallback mCallback) {
         this.registerQMTT(mContext, null, serverUrl, sn, token, topicBean, mCallback);
     }
+
     @Override
     public void registerQMTT(@NonNull Context mContext, String productKey, String serverUrl, String sn, String token, TopicBean topicBean, @Nullable final MQTTRegisterCallback mCallback) {
         super.registerQMTT(mContext, productKey, serverUrl, sn, token, topicBean, mCallback);
@@ -238,7 +240,10 @@ public class MqttManager extends BasePushManager implements PublishTopic {
                 MqttAndroidClient client = connection.getClient();
                 connection.changeConnectionStatus(Connection.ConnectionStatus.DISCONNECTING);
                 if (client != null) {
-                    client.disconnect();
+                    try {
+                        client.disconnect();
+                    } catch (Exception e) {
+                    }
                 }
                 connection.updateConnection(connectionModel.getClientId(), connectionModel.getServerHostName(), connectionModel.getServerPort(), connectionModel.isTlsConnection());
             } else {
@@ -286,7 +291,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
                     }
                 }
             });
-        } catch (MqttException e) {
+        } catch (Exception e) {
             if (mMQTTRegisterCallback != null) {
                 mMQTTRegisterCallback.onFailure(new RegisterException(e), "MqttException occurred");
             }
@@ -427,6 +432,9 @@ public class MqttManager extends BasePushManager implements PublishTopic {
     }
 
     private TopicBean handlerTopic(String productKey, String deviceName, String sn, TopicBean topicBean) {
+        if (productKey == null) {
+            productKey = "1001";
+        }
         if (topicBean.getMessageTopic() != null) {
             String topic = topicBean.getMessageTopic();
             topic = topic.replace("{productKey}", productKey);
