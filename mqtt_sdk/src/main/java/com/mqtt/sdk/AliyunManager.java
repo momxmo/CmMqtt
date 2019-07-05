@@ -27,10 +27,12 @@ import com.aliyun.alink.linksdk.tools.log.IDGenerater;
 import com.mqtt.sdk.exception.PushException;
 import com.mqtt.sdk.listener.PushCallback;
 import com.mqtt.sdk.publish.PublishTopic;
+import com.mqtt.sdk.tool.MQLog;
 import com.mqtt.sdk.topic.TopicBean;
 import com.mqtt.sdk.topic.TopicContainer;
 import com.mqtt.sdk.topic.Topics;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -206,6 +208,27 @@ public class AliyunManager extends BasePushManager implements PublishTopic {
      * 订阅
      */
     @Override
+    protected void subscribeAllTopics() {
+        try {
+            if (TopicContainer.getInstance().containsTopic(Topics.message)) {
+                subscribeTopic(TopicContainer.getInstance().getTopic(Topics.message));
+            }
+            if (TopicContainer.getInstance().containsTopic(Topics.update)) {
+                subscribeTopic(TopicContainer.getInstance().getTopic(Topics.update));
+            }
+            if (TopicContainer.getInstance().containsTopic(Topics.cmd)) {
+                subscribeTopic(TopicContainer.getInstance().getTopic(Topics.cmd));
+            }
+        } catch (Exception ex) {
+            MQLog.e("Failed to Auto-Subscribe: " + ex.getMessage());
+        }
+    }
+
+
+    /**
+     * 订阅
+     */
+    @Override
     public void subscribeTopic(String topic) {
         try {
             MqttSubscribeRequest subscribeRequest = new MqttSubscribeRequest();
@@ -289,7 +312,7 @@ public class AliyunManager extends BasePushManager implements PublishTopic {
     }
 
     public void setDebug(boolean debug) {
-        if(debug){
+        if (debug) {
             ALog.setLevel(ALog.LEVEL_DEBUG);//开启Debug
         }
     }

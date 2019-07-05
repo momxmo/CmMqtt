@@ -30,6 +30,7 @@ import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Map;
 
 //import org.eclipse.paho.client.mqttv3.internal.NetworkModuleService;
@@ -225,7 +226,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
         connectionModel.setClientId(sn);
         connectionModel.setServerHostName(url.getHost());
         connectionModel.setServerPort(url.getPort());
-        connectionModel.setCleanSession(true);
+        connectionModel.setCleanSession(false);
         connectionModel.setUsername(sn);
         connectionModel.setPassword(token);
         connectionModel.setTimeout(40);
@@ -349,6 +350,47 @@ public class MqttManager extends BasePushManager implements PublishTopic {
             }
         }
     }
+
+    /**
+     * 订阅
+     */
+    @Override
+    protected void subscribeAllTopics() {
+        try {
+
+            ArrayList<String> strings = new ArrayList<>();
+
+            if (TopicContainer.getInstance().containsTopic(Topics.message)) {
+                strings.add(TopicContainer.getInstance().getTopic(Topics.message));
+            }
+            if (TopicContainer.getInstance().containsTopic(Topics.update)) {
+                strings.add(TopicContainer.getInstance().getTopic(Topics.update));
+            }
+            if (TopicContainer.getInstance().containsTopic(Topics.cmd)) {
+                strings.add(TopicContainer.getInstance().getTopic(Topics.cmd));
+            }
+            String[] topis = new String[strings.size()];
+            int[] qos = new int[strings.size()];
+            if (connection != null && connection.getClient().isConnected()) {
+                connection.getClient().subscribe(topis, qos, context, new IMqttActionListener() {
+                    @Override
+                    public void onSuccess(IMqttToken iMqttToken) {
+
+                    }
+
+                    @Override
+                    public void onFailure(IMqttToken iMqttToken, Throwable throwable) {
+                        if (connection != null && connection.getClient().isConnected()) {
+                            subscribeAllTopics();
+                        }
+                    }
+                });
+            }
+        } catch (Exception ex) {
+            MQLog.e("Failed to Auto-Subscribe: " + ex.getMessage());
+        }
+    }
+
 
     /**
      * 发布消息

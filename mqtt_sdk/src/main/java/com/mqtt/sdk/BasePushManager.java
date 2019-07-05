@@ -18,6 +18,7 @@ import com.mqtt.sdk.topic.Topics;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public abstract class BasePushManager implements PublishTopic, PushInitListener {
@@ -69,20 +70,7 @@ public abstract class BasePushManager implements PublishTopic, PushInitListener 
     /**
      * 订阅
      */
-    private void subscribeAllTopics() {
-        try {
-            if (TopicContainer.getInstance().containsTopic(Topics.message)) {
-                subscribeTopic(TopicContainer.getInstance().getTopic(Topics.message));
-            }
-            if (TopicContainer.getInstance().containsTopic(Topics.update)) {
-                subscribeTopic(TopicContainer.getInstance().getTopic(Topics.update));
-            }
-            if (TopicContainer.getInstance().containsTopic(Topics.cmd)) {
-                subscribeTopic(TopicContainer.getInstance().getTopic(Topics.cmd));
-            }
-        } catch (Exception ex) {
-            MQLog.e("Failed to Auto-Subscribe: " + ex.getMessage());
-        }
+    protected void subscribeAllTopics() {
     }
 
     @Override
