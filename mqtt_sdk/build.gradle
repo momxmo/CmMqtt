@@ -5,14 +5,14 @@ group='com.github.cmmqtt'  //注意com.github.后面的为github账号
 //根路径
 def ROOT_PATH = rootProject.rootDir.path
 def GROUP = "com.mqtt.sdk"
-def MOB_SDK_VERSION_NAME = "1.1.3"
+def MOB_SDK_VERSION_NAME = "1.1.4"
 android {
     compileSdkVersion 28
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 113
-        versionName "1.1.3"
+        versionCode 114
+        versionName "1.1.4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     //自定义aar名称

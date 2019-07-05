@@ -31,6 +31,8 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
 //import org.eclipse.paho.client.mqttv3.internal.NetworkModuleService;
@@ -370,16 +372,27 @@ public class MqttManager extends BasePushManager implements PublishTopic {
                 strings.add(TopicContainer.getInstance().getTopic(Topics.cmd));
             }
             String[] topis = new String[strings.size()];
+
             int[] qos = new int[strings.size()];
+            for (int i = 0; i < strings.size(); i++) {
+                topis[i] = strings.get(i);
+                qos[i] = 1;
+            }
+
             if (connection != null && connection.getClient().isConnected()) {
                 connection.getClient().subscribe(topis, qos, context, new IMqttActionListener() {
                     @Override
                     public void onSuccess(IMqttToken iMqttToken) {
+                        MQLog.e("onSuccess to Auto-Subscribe");
 
                     }
 
                     @Override
                     public void onFailure(IMqttToken iMqttToken, Throwable throwable) {
+                        MQLog.e("onFailure to Auto-Subscribe");
+                        if (throwable != null) {
+                            throwable.printStackTrace();
+                        }
                         if (connection != null && connection.getClient().isConnected()) {
                             subscribeAllTopics();
                         }
