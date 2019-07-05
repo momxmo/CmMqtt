@@ -1,4 +1,4 @@
-﻿# mqtt sdk的使用方式
+# mqtt sdk的使用方式
 
 ### 第一步，build.gradle配置文件修改
 ``` java
@@ -7,12 +7,22 @@ allprojects {
     repositories {
         //添加jitpack仓库
         maven { url 'https://jitpack.io' }
+         maven {
+            url "http://maven.aliyun.com/nexus/content/repositories/releases/"
+        }
+        maven {
+            url "http://maven.aliyun.com/nexus/content/repositories/snapshots"
+        }
     }
 }
 
 //app build.gradle
 dependencies {  
+<<<<<<< .mine
     implementation 'com.github.momxmo:CmMqtt:v1.1.2'
+=======
+    implementation 'com.github.momxmo:CmMqtt:v1.1.1'
+>>>>>>> .theirs
     implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
     implementation 'com.aliyun.alink.linksdk:iot-linkkit:1.6.6'
 }  
