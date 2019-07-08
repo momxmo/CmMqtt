@@ -59,7 +59,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
         return mInstance;
     }
 
-    private MqttCallbackExtended mMqttCallbackExtended = new MqttCallbackExtended() {
+    private class MqttCallbackExtendedIml implements MqttCallbackExtended {
         @Override
         public void connectComplete(boolean reconnect, String serverURI) {
             if (reconnect) {
@@ -256,7 +256,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
                         context, connectionModel.isTlsConnection());
             }
             connection.changeConnectionStatus(Connection.ConnectionStatus.CONNECTING);
-            connection.getClient().setCallback(mMqttCallbackExtended);
+            connection.getClient().setCallback(new MqttCallbackExtendedIml());
             connection.getClient().setTraceCallback(new MqttTraceCallback());
             MqttConnectOptions connOpts = optionsFromModel(connectionModel);
             connection.addConnectionOptions(connOpts);
