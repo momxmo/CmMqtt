@@ -5,14 +5,14 @@ group='com.github.cmmqtt'  //注意com.github.后面的为github账号
 //根路径
 def ROOT_PATH = rootProject.rootDir.path
 def GROUP = "com.mqtt.sdk"
-def MOB_SDK_VERSION_NAME = "1.1.4"
+def MOB_SDK_VERSION_NAME = "1.1.6"
 android {
     compileSdkVersion 28
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 114
-        versionName "1.1.4"
+        versionCode 116
+        versionName "1.1.6"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     //自定义aar名称
@@ -38,7 +38,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 //    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.1'
-    implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
+//    implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
     implementation 'com.aliyun.alink.linksdk:iot-linkkit:1.6.6'
 }
 

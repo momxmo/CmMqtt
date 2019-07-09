@@ -70,8 +70,7 @@ public abstract class BasePushManager implements PublishTopic, PushInitListener 
     /**
      * 订阅
      */
-    protected void subscribeAllTopics() {
-    }
+    protected abstract void subscribeAllTopics();
 
     @Override
     public void pushDeviceInfo() {

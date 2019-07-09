@@ -2,6 +2,8 @@ package com.mqtt.sdk;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -31,12 +33,7 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
-
-//import org.eclipse.paho.client.mqttv3.internal.NetworkModuleService;
-
 
 public class MqttManager extends BasePushManager implements PublishTopic {
 
@@ -59,7 +56,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
         return mInstance;
     }
 
-    private class MqttCallbackExtendedIml implements MqttCallbackExtended {
+    public class MqttCallbackExtendedImpl implements MqttCallbackExtended {
         @Override
         public void connectComplete(boolean reconnect, String serverURI) {
             if (reconnect) {
@@ -76,7 +73,6 @@ public class MqttManager extends BasePushManager implements PublishTopic {
             }
             connectedHandler();
         }
-
 
         @Override
         public void connectionLost(Throwable cause) {
@@ -126,7 +122,9 @@ public class MqttManager extends BasePushManager implements PublishTopic {
         public void deliveryComplete(IMqttDeliveryToken token) {
             //即服务器成功delivery消息 消息发送成功ack校验
         }
-    };
+    }
+
+    ;
 
     public void registerQMTT(@NonNull Context mContext, String serverUrl, String sn, String token, TopicBean topicBean, @Nullable final MQTTRegisterCallback mCallback) {
         this.registerQMTT(mContext, null, serverUrl, sn, token, topicBean, mCallback);
@@ -190,8 +188,6 @@ public class MqttManager extends BasePushManager implements PublishTopic {
             }
             return;
         }
-
-
         if (connection != null) {
             ConnectionModel connectionModel = new ConnectionModel(connection);
             if (url.getHost().equals(connectionModel.getServerHostName())
@@ -235,17 +231,19 @@ public class MqttManager extends BasePushManager implements PublishTopic {
         connectionModel.setKeepAlive(SharedPreferenceUtil.getInstance(context).getInt(SharedPreferenceUtil.KEEP_ALIVE, 30));
         connectionModel.setLwtRetain(true);
         connection(connectionModel);
+
     }
 
     private synchronized void connection(ConnectionModel connectionModel) {
         try {
             if (connection != null) {
-                MqttAndroidClient client = connection.getClient();
                 connection.changeConnectionStatus(Connection.ConnectionStatus.DISCONNECTING);
-                if (client != null) {
+                if (connection.getClient() != null) {
                     try {
-                        client.disconnect();
+                        connection.getClient().disconnect();
+                        connection.getClient().close();
                     } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
                 connection.updateConnection(connectionModel.getClientId(), connectionModel.getServerHostName(), connectionModel.getServerPort(), connectionModel.isTlsConnection());
@@ -256,7 +254,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
                         context, connectionModel.isTlsConnection());
             }
             connection.changeConnectionStatus(Connection.ConnectionStatus.CONNECTING);
-            connection.getClient().setCallback(new MqttCallbackExtendedIml());
+            connection.getClient().setCallback(new MqttCallbackExtendedImpl());
             connection.getClient().setTraceCallback(new MqttTraceCallback());
             MqttConnectOptions connOpts = optionsFromModel(connectionModel);
             connection.addConnectionOptions(connOpts);
@@ -359,9 +357,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
     @Override
     protected void subscribeAllTopics() {
         try {
-
             ArrayList<String> strings = new ArrayList<>();
-
             if (TopicContainer.getInstance().containsTopic(Topics.message)) {
                 strings.add(TopicContainer.getInstance().getTopic(Topics.message));
             }
@@ -378,13 +374,11 @@ public class MqttManager extends BasePushManager implements PublishTopic {
                 topis[i] = strings.get(i);
                 qos[i] = 1;
             }
-
-            if (connection != null && connection.getClient().isConnected()) {
-                connection.getClient().subscribe(topis, qos, context, new IMqttActionListener() {
+            if (connection != null) {
+                connection.getClient().subscribe(topis, qos, null, new IMqttActionListener() {
                     @Override
                     public void onSuccess(IMqttToken iMqttToken) {
                         MQLog.e("onSuccess to Auto-Subscribe");
-
                     }
 
                     @Override
@@ -401,10 +395,9 @@ public class MqttManager extends BasePushManager implements PublishTopic {
             }
         } catch (Exception ex) {
             MQLog.e("Failed to Auto-Subscribe: " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
-
-
     /**
      * 发布消息
      */
@@ -473,7 +466,9 @@ public class MqttManager extends BasePushManager implements PublishTopic {
     public void unregister() {
         try {
             if (connection != null && connection.getClient() != null) {
-                connection.getClient().disconnect();
+                MqttAndroidClient client = connection.getClient();
+                client.disconnect();
+                client.close();
             }
             connection = null;
         } catch (Exception e) {
