@@ -18,8 +18,7 @@ allprojects {
 
 //app build.gradle
 dependencies {  
-    implementation 'com.github.momxmo:CmMqtt:v1.1.2'
-    implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
+    implementation 'com.github.momxmo:CmMqtt:v1.1.8'
     implementation 'com.aliyun.alink.linksdk:iot-linkkit:1.6.6'
 }  
 ```

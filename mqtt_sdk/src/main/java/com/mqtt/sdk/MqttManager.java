@@ -202,17 +202,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
                     }
                 }
                 if (topicBean != null && connection.getClient() != null) {
-                    Map<Topics, String> topicMap = TopicContainer.getInstance().getTopicMap();
-                    for (Map.Entry<Topics, String> entry : topicMap.entrySet()) {
-                        String topic = entry.getValue();
-                        if (connection.getClient().isConnected()) {
-                            try {
-                                connection.getClient().subscribe(topic, 1);
-                            } catch (MqttException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
+                    subscribeAllTopics();
                 }
                 return;
             }
@@ -374,7 +364,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
                 topis[i] = strings.get(i);
                 qos[i] = 1;
             }
-            if (connection != null) {
+            if (connection != null && connection.getClient() != null && strings.size() > 0) {
                 connection.getClient().subscribe(topis, qos, null, new IMqttActionListener() {
                     @Override
                     public void onSuccess(IMqttToken iMqttToken) {
@@ -383,10 +373,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
 
                     @Override
                     public void onFailure(IMqttToken iMqttToken, Throwable throwable) {
-                        MQLog.e("onFailure to Auto-Subscribe");
-                        if (throwable != null) {
-                            throwable.printStackTrace();
-                        }
+                        MQLog.e("onFailure to Auto-Subscribe " + ((throwable == null) ? "" : throwable.getMessage()));
                         if (connection != null && connection.getClient().isConnected()) {
                             subscribeAllTopics();
                         }
@@ -398,6 +385,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
             ex.printStackTrace();
         }
     }
+
     /**
      * 发布消息
      */
@@ -470,9 +458,10 @@ public class MqttManager extends BasePushManager implements PublishTopic {
                 client.disconnect();
                 client.close();
             }
-            connection = null;
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            connection = null;
         }
     }
 
@@ -483,7 +472,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
 
     private TopicBean handlerTopic(String productKey, String deviceName, String sn, TopicBean topicBean) {
         if (productKey == null) {
-            productKey = "1001";
+            productKey = "1007";
         }
         if (topicBean.getMessageTopic() != null) {
             String topic = topicBean.getMessageTopic();
