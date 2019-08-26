@@ -2,8 +2,6 @@ package com.mqtt.sdk;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -33,7 +31,6 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Map;
 
 public class MqttManager extends BasePushManager implements PublishTopic {
 
@@ -217,7 +214,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
         connectionModel.setCleanSession(false);
         connectionModel.setUsername(sn);
         connectionModel.setPassword(token);
-        connectionModel.setTimeout(40);
+        connectionModel.setTimeout(10);
         connectionModel.setKeepAlive(SharedPreferenceUtil.getInstance(context).getInt(SharedPreferenceUtil.KEEP_ALIVE, 30));
         connectionModel.setLwtRetain(true);
         connection(connectionModel);
@@ -471,7 +468,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
     }
 
     private TopicBean handlerTopic(String productKey, String deviceName, String sn, TopicBean topicBean) {
-        if (productKey == null) {
+        if (TextUtils.isEmpty(productKey)) {
             productKey = "1007";
         }
         if (topicBean.getMessageTopic() != null) {

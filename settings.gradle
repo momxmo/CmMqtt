@@ -1,1 +1,1 @@
-include ':demo', ':mqtt', ':mqtt_sdk3', ':mqtt_sdk',':org.eclipse.paho.android.service',':demo_my', ':Buildsrc',':org.eclipse.paho.android.sample'
+include ':demo', ':mqtt', ':mqtt_sdk3', ':mqtt_sdk',':demo_my', ':Buildsrc',':org.eclipse.paho.android.sample'
