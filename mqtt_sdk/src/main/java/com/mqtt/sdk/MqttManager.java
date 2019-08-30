@@ -56,10 +56,10 @@ public class MqttManager extends BasePushManager implements PublishTopic {
     public class MqttCallbackExtendedImpl implements MqttCallbackExtended {
         @Override
         public void connectComplete(boolean reconnect, String serverURI) {
+            if (mMQTTRegisterCallback != null) {
+                mMQTTRegisterCallback.reconnectComplete();
+            }
             if (reconnect) {
-                if (mMQTTRegisterCallback != null) {
-                    mMQTTRegisterCallback.reconnectComplete();
-                }
                 MQLog.d("connectComplete: reconnect success " + serverURI);
             } else {
                 MQLog.d("connectComplete: " + serverURI);
