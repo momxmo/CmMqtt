@@ -25,6 +25,7 @@ import com.aliyun.alink.linksdk.tools.AError;
 import com.aliyun.alink.linksdk.tools.ALog;
 import com.aliyun.alink.linksdk.tools.log.IDGenerater;
 import com.mqtt.sdk.exception.PushException;
+import com.mqtt.sdk.exception.RegisterException;
 import com.mqtt.sdk.listener.PushCallback;
 import com.mqtt.sdk.publish.PublishTopic;
 import com.mqtt.sdk.tool.MQLog;
@@ -40,7 +41,7 @@ import java.util.Map;
 public class AliyunManager extends BasePushManager implements PublishTopic {
     private String TAG = "AliyunManager";
     private static AliyunManager mInstance = null;
-    private CmILinkKitConnectListener mCMILinkKitConnectListener;
+    private MQTTRegisterCallback mMQTTRegisterCallback;
     private DeviceInfo deviceInfo;
     private ConnectState connectState;
 
@@ -59,18 +60,18 @@ public class AliyunManager extends BasePushManager implements PublishTopic {
     }
 
     @Override
-    public void registerAliyun(Context context, String productKey, String deviceName, String deviceSecret, TopicBean topicBean, CmILinkKitConnectListener mCMILinkKitConnectListener) {
+    public void registerAliyun(Context context, String productKey, String deviceName, String deviceSecret, TopicBean topicBean, MQTTRegisterCallback mMQTTRegisterCallback) {
         this.context = context;
-        this.mCMILinkKitConnectListener = mCMILinkKitConnectListener;
+        this.mMQTTRegisterCallback = mMQTTRegisterCallback;
         if (TextUtils.isEmpty(productKey) || TextUtils.isEmpty(deviceName) || TextUtils.isEmpty(deviceSecret)) {
-            if (mCMILinkKitConnectListener != null) {
-                mCMILinkKitConnectListener.onError(DMErrorCode.getErrorCode(1101101, 121, "init params error, params is null."));
+            if (mMQTTRegisterCallback != null) {
+                mMQTTRegisterCallback.onFailure(new RegisterException("init params error, params is null."), "init params error, params is null.");
             }
             return;
         }
         if (topicBean == null) {
-            if (mCMILinkKitConnectListener != null) {
-                mCMILinkKitConnectListener.onError(DMErrorCode.getErrorCode(1101101, 121, "topicBean params is null."));
+            if (mMQTTRegisterCallback != null) {
+                mMQTTRegisterCallback.onFailure(new RegisterException("topicBean params is null."), "topicBean params is null.");
             }
             return;
         }
@@ -157,17 +158,22 @@ public class AliyunManager extends BasePushManager implements PublishTopic {
             @Override
             public void onError(AError error) {
                 // 初始化失败 error包含初始化错误信息
-                if (mCMILinkKitConnectListener != null) {
-                    mCMILinkKitConnectListener.onError(error);
+                if (mMQTTRegisterCallback!=null) {
+                    if (error != null) {
+                        mMQTTRegisterCallback.onFailure(new RegisterException(""+error.getMsg()), ""+error.getMsg());
+                    }else {
+                        mMQTTRegisterCallback.onFailure(new RegisterException("init onError"), "init onError");
+                    }
                 }
+
             }
 
             @Override
             public void onInitDone(Object data) {
                 ALog.i(TAG, "Aliyun 1111111111111111111111");
                 // 初始化成功 data 作为预留参数
-                if (mCMILinkKitConnectListener != null) {
-                    mCMILinkKitConnectListener.onInitDone(data);
+                if (mMQTTRegisterCallback != null && deviceInfo!=null) {
+                    mMQTTRegisterCallback.onSuccess(deviceInfo.deviceName+"");
                 }
             }
         });
@@ -198,9 +204,16 @@ public class AliyunManager extends BasePushManager implements PublishTopic {
             // 对应连接类型的连接状态变化回调，具体连接状态参考 SDK ConnectState
             AliyunManager.this.connectState = connectState;
             if (connectState == ConnectState.CONNECTED) {
-                ALog.i(TAG, "Aliyun 22222222222222222");
                 connectedHandler();
             }
+            if (mMQTTRegisterCallback != null) {
+                if (connectState == ConnectState.DISCONNECTED || connectState == ConnectState.CONNECTFAIL) {
+                    mMQTTRegisterCallback.connectionLost(new Exception("aliyun offline"));
+                } else if (connectState == ConnectState.CONNECTED) {
+                    mMQTTRegisterCallback.reconnectComplete();
+                }
+            }
+
         }
     };
 

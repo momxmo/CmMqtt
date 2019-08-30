@@ -59,7 +59,7 @@ public abstract class BasePushManager implements PublishTopic, PushInitListener 
         this.deviceName = sn;
     }
 
-    public void registerAliyun(Context context, String productKey, String deviceName, String deviceSecret, TopicBean topicBean, CmILinkKitConnectListener mCMILinkKitConnectListener) {
+    public void registerAliyun(Context context, String productKey, String deviceName, String deviceSecret, TopicBean topicBean, MQTTRegisterCallback mMQTTRegisterCallback) {
     }
 
     public void connectedHandler() {
