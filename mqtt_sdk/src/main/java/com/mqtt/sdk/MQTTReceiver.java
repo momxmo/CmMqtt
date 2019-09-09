@@ -45,19 +45,26 @@ public abstract class MQTTReceiver extends BroadcastReceiver {
     private void internalHandler(String clientid, String topic, String message) {
         MQLog.i("topic : " + topic + " message" + message);
         Topics topicType = TopicContainer.getInstance().getTopicType(topic);
-        switch (topicType) {
-            case message: {
-                handlerMessage(topic, message);
+        if (topicType == null) {
+            customMessage(topic, message);
+        } else {
+            switch (topicType) {
+                case message: {
+                    handlerMessage(topic, message);
+                }
+                break;
+                case cmd: {
+                    handlderCMDMessage(message);
+                }
+                break;
+                case update: {
+                    handlerUpdatePing(message);
+                }
+                break;
+                default:
+                    customMessage(topic, message);
+                break;
             }
-            break;
-            case cmd: {
-                handlderCMDMessage(message);
-            }
-            break;
-            case update: {
-                handlerUpdatePing(message);
-            }
-            break;
         }
     }
 
@@ -118,6 +125,13 @@ public abstract class MQTTReceiver extends BroadcastReceiver {
      * @param message
      */
     public abstract void handlerMessage(String topic, String message);
+
+    /**
+     * app自定义其他主题
+     * @param topic
+     * @param message
+     */
+    public abstract void customMessage(String topic, String message);
 
     public abstract void LogMessage();
 

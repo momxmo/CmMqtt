@@ -99,19 +99,25 @@ public class MqttManager extends BasePushManager implements PublishTopic {
             String payload = new String(message.getPayload());
             MQLog.d("Topic: " + topic + " isDuplicate: " + message.isDuplicate() + " messageId: " + message.getId() + "  ==> Payload: " + payload);
             if (topic != null && payload != null) {
-                if (TopicContainer.getInstance().containsTopic(topic)) {
-                    Intent intent = new Intent();
-                    intent.setAction(MQTTConstants.MQTT_RECEIVER);
-                    intent.putExtra(MQTTConstants.TOPIC, topic);
-                    intent.putExtra(MQTTConstants.CLIENTID, connection.getId());
-                    intent.putExtra(MQTTConstants.MQTTMESSAGE, payload);
-                    context.sendBroadcast(intent);
-                } else {
-                    MQLog.d("订阅以外的消息：Topic: " + topic + " ==> Payload: " + payload);
-                    if (MQTTConstants.SYS_CLOSE.equals(topic)) {
-                        MQLog.d("服务器主动断开：" + payload);
-                    }
-                }
+                Intent intent = new Intent();
+                intent.setAction(MQTTConstants.MQTT_RECEIVER);
+                intent.putExtra(MQTTConstants.TOPIC, topic);
+                intent.putExtra(MQTTConstants.CLIENTID, connection.getId());
+                intent.putExtra(MQTTConstants.MQTTMESSAGE, payload);
+                context.sendBroadcast(intent);
+//                if (TopicContainer.getInstance().containsTopic(topic)) {
+//                    Intent intent = new Intent();
+//                    intent.setAction(MQTTConstants.MQTT_RECEIVER);
+//                    intent.putExtra(MQTTConstants.TOPIC, topic);
+//                    intent.putExtra(MQTTConstants.CLIENTID, connection.getId());
+//                    intent.putExtra(MQTTConstants.MQTTMESSAGE, payload);
+//                    context.sendBroadcast(intent);
+//                } else {
+//                    MQLog.d("订阅以外的消息：Topic: " + topic + " ==> Payload: " + payload);
+//                    if (MQTTConstants.SYS_CLOSE.equals(topic)) {
+//                        MQLog.d("服务器主动断开：" + payload);
+//                    }
+//                }
             }
         }
 
