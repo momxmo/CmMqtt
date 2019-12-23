@@ -451,6 +451,67 @@ public class MqttManager extends BasePushManager implements PublishTopic {
             }
         }
     }
+    /**
+     * 发布消息
+     */
+    public void publishMessage(@NonNull String topic, @NonNull String msg, @NonNull final PushCallback callback) {
+        if (topic == null) {
+            if (callback != null)
+                callback.onFailure(new PushException("topic  is must"), "topic  is must");
+            return;
+        }
+        if (msg == null) {
+            if (callback != null)
+                callback.onFailure(new PushException("msg is must"), "msg is must");
+            return;
+        }
+        if (connection == null) {
+            if (callback != null)
+                callback.onFailure(new PushException("mqtt  uninitialized"), "mqtt  uninitialized");
+            return;
+        }
+        try {
+            MqttMessage message = new MqttMessage();
+            message.setPayload(msg.getBytes());
+            MqttAndroidClient client = connection.getClient();
+            if (TextUtils.isEmpty(topic)) {
+                if (callback != null) {
+                    callback.onFailure(new PushException("not fond topic type"), "not fond topic type");
+                }
+                return;
+            }
+            if (client == null || !client.isConnected()) {
+                if (callback != null) {
+                    callback.onFailure(new PushException("mqtt disconnetion"), "mqtt disconnetion");
+                }
+                return;
+            }
+            client.publish(topic, message, context, new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    if (callback != null) {
+                        callback.onSuccess(asyncActionToken.getMessageId() + "");
+                    }
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    if (callback != null) {
+                        if (exception == null) {
+                            callback.onFailure(new PushException("发送消息失败"), "发送消息失败");
+                        } else {
+                            callback.onFailure(new PushException(exception), exception.getMessage());
+                        }
+                    }
+                }
+            });
+        } catch (Exception e) {
+            MQLog.d("publishMessage: Error Publishing: " + e.getMessage());
+            if (callback != null) {
+                callback.onFailure(new PushException(e), e.getMessage());
+            }
+        }
+    }
 
 
     @Override
