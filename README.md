@@ -19,7 +19,7 @@ allprojects {
 
 //app build.gradle
 dependencies {  
-    implementation 'com.github.momxmo:CmMqtt:v1.2.3'
+    implementation 'com.github.momxmo:CmMqtt:v1.2.6'
     implementation 'com.aliyun.alink.linksdk:iot-linkkit:1.6.6'
 }  
 ```
