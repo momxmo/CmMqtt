@@ -98,12 +98,16 @@ public abstract class MQTTReceiver extends BroadcastReceiver {
                         UpdateMessage(message);
                     }
                     break;
+                    default:
+                        CmdMessage(cmd, message);
+                        break;
                 }
             }
         } catch (JSONException e) {
             MQLog.e(e.getMessage());
         }
     }
+
 
     /**
      * 更新心跳包时间
@@ -140,4 +144,6 @@ public abstract class MQTTReceiver extends BroadcastReceiver {
     public abstract void AdMessage();
 
     public abstract void UpdateMessage(String upgradeUrl);
+
+    public abstract void CmdMessage(String cmd,String body_message);
 }

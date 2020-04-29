@@ -390,6 +390,8 @@ public class MqttManager extends BasePushManager implements PublishTopic {
     }
 
     /**
+     *
+     *
      * 发布消息
      */
     public void publishMessage(@NonNull Topics topics, @NonNull String msg, @NonNull final PushCallback callback) {
