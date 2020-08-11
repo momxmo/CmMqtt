@@ -2,6 +2,7 @@ package com.mqtt.sdk;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -52,6 +53,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
         }
         return mInstance;
     }
+    private Handler mqttHandler = new Handler();
 
     public class MqttCallbackExtendedImpl implements MqttCallbackExtended {
         @Override
@@ -217,7 +219,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
         connectionModel.setClientId(sn);
         connectionModel.setServerHostName(url.getHost());
         connectionModel.setServerPort(url.getPort());
-        connectionModel.setCleanSession(false);
+        connectionModel.setCleanSession(true);
         connectionModel.setUsername(sn);
         connectionModel.setPassword(token);
         connectionModel.setTimeout(10);
@@ -227,7 +229,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
 
     }
 
-    private synchronized void connection(ConnectionModel connectionModel) {
+    private synchronized void connection(final ConnectionModel connectionModel) {
         try {
             if (connection != null) {
                 connection.changeConnectionStatus(Connection.ConnectionStatus.DISCONNECTING);
@@ -266,6 +268,14 @@ public class MqttManager extends BasePushManager implements PublishTopic {
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                     connection.changeConnectionStatus(Connection.ConnectionStatus.ERROR);
+                    mqttHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!isConnected()) {
+                                connection(connectionModel);
+                            }
+                        }
+                    }, 3000);//首次连接失败三秒后重连
                     connection.addAction("Client failed to connect");
                     MQLog.d("onFailure: Failed to connect to " + connection.getHostName());
                     if (exception == null) {
@@ -291,6 +301,7 @@ public class MqttManager extends BasePushManager implements PublishTopic {
             }
         }
     }
+
 
     private MqttConnectOptions optionsFromModel(ConnectionModel model) {
         MqttConnectOptions connOpts = new MqttConnectOptions();

@@ -363,7 +363,6 @@ public class MqttAndroidClient extends BroadcastReceiver implements
      * token will be passed to any callback that has been set.
      * @throws MqttException for any connected problems, including communication errors
      */
-
     @Override
     public IMqttToken connect(MqttConnectOptions options, Object userContext,
                               IMqttActionListener callback) throws MqttException {
@@ -414,6 +413,7 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 
         return token;
     }
+
 
     private void registerReceiver(BroadcastReceiver receiver) {
         IntentFilter filter = new IntentFilter();

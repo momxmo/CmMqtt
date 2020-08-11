@@ -171,7 +171,6 @@ public class Connection {
         this.port = port;
         this.tlsConnection = tlsConnection;
         this.client = new MqttAndroidClient(context, uri, clientId,new MemoryPersistence());
-
     }
 
 
